@@ -1,7 +1,4 @@
-import org.openqa.selenium.By;
-import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
@@ -18,10 +15,24 @@ import java.util.NoSuchElementException;
 public class addItemsToBucketTest {
 
     private WebDriver driver;
+    private JavascriptExecutor jsExecutor;
+
+    private WebElement getWebElementByXpath(Wait<WebDriver> wait, String xpath) {
+        return wait
+                .until(ExpectedConditions
+                        .presenceOfElementLocated(By.xpath(xpath)));
+    }
+
+    private String extractSneakersInfo(String rawSneakersString) {
+        int vendorCodeStartIndex = rawSneakersString.indexOf("\n");
+
+        return rawSneakersString.substring(0, vendorCodeStartIndex);
+    }
 
     @BeforeMethod (alwaysRun = true)
     public void browserSetup() {
         driver = new ChromeDriver();
+        jsExecutor = (JavascriptExecutor) driver;
     }
 
     @Test
@@ -33,18 +44,28 @@ public class addItemsToBucketTest {
                 .pollingEvery(Duration.ofSeconds(3))
                 .ignoring(NoSuchElementException.class)
                 .ignoring(StaleElementReferenceException.class)
-                .withMessage("Timeout for waiting search result list was exceeded!");
+                .withMessage("Timeout for waiting was exceeded!");
 
         List<WebElement> sneakersSizes = wait
                 .until(ExpectedConditions
                         .presenceOfAllElementsLocatedBy(By.xpath("//li[@class='cb-item-actions-data-sizes']//li")));
 
-        WebElement firstAvailableSize = sneakersSizes.stream()
+        WebElement firstAvailableSizeInput = sneakersSizes.stream()
                 .filter(webElement -> webElement.findElement(By.tagName("input")).isEnabled())
                 .findFirst()
-                .get();
+                .get()
+                .findElement(By.tagName("input"));
 
-        Assert.assertEquals(firstAvailableSize.findElement(By.tagName("label")).getText(),"39,5");
+        jsExecutor.executeScript(String.format("document.getElementById('%s').setAttribute('class', 'checked')",
+                firstAvailableSizeInput.getAttribute("id")));
+
+        WebElement goToBucketLink = getWebElementByXpath(wait, "//a[text()='В корзину']");
+        jsExecutor.executeScript("arguments[0].click()", goToBucketLink);
+
+        WebElement labelInPopupHeader = getWebElementByXpath(wait, "//p[@class='cb-item-popup-head-heading']");
+        String popupBodyText = getWebElementByXpath(wait, "//div[@class='cb-item-popup-body-text']").getAttribute("innerText");
+
+        Assert.assertEquals(extractSneakersInfo(popupBodyText.trim()),"Кроссовки мужские Nike Md Runner 2");
     }
 
     @AfterMethod (alwaysRun = true)
