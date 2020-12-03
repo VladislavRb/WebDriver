@@ -9,12 +9,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class addItemsToBucketTest {
+public class addItemsToBasketTest {
 
     private WebDriver driver;
     private JavascriptExecutor jsExecutor;
@@ -38,8 +37,13 @@ public class addItemsToBucketTest {
     }
 
     @Test
-    public void addSneakersToBucketListTest() {
-        List<String> expectedResults = Arrays.asList("Товар добавлен в корзину", "Кроссовки мужские Nike Md Runner 2", "176,00 руб.");
+    public void addSneakersToBasketListTest() {
+        List<String> expectedResults = Arrays.asList(
+                "Товар добавлен в корзину",
+                "Кроссовки мужские Nike Md Runner 2",
+                "176,00 руб.",
+                "Перейти в корзину"
+                );
 
         driver.get("http://www.sportmaster.by/catalogitem/krossovki_mugskie_nike_md_runner_2749794n06010/");
 
@@ -63,15 +67,16 @@ public class addItemsToBucketTest {
         jsExecutor.executeScript(String.format("document.getElementById('%s').setAttribute('class', 'checked')",
                 firstAvailableSizeInput.getAttribute("id")));
 
-        WebElement goToBucketLink = getWebElementByXpath(wait, "//a[text()='В корзину']");
-        jsExecutor.executeScript("arguments[0].click()", goToBucketLink);
+        WebElement goToBasketLink = getWebElementByXpath(wait, "//a[text()='В корзину']");
+        jsExecutor.executeScript("arguments[0].click()", goToBasketLink);
 
         WebElement itemPopupWindow = getWebElementByXpath(wait, "//div[@class='cb-item-popup']");
 
         List<String> actualResults = Arrays.asList(
                 itemPopupWindow.findElement(By.xpath("//p[@class='cb-item-popup-head-heading']")).getAttribute("innerText").trim(),
                 extractSneakersInfo(itemPopupWindow.findElement(By.xpath("//div[@class='cb-item-popup-body-text']")).getAttribute("innerText").trim()),
-                itemPopupWindow.findElement(By.xpath("//div[@class='cb-item-price-old']")).getText()
+                itemPopupWindow.findElement(By.xpath("//div[@class='cb-item-price-old']")).getText(),
+                itemPopupWindow.findElement(By.xpath("//a[contains(@class, 'go_to_order_basket')]")).getAttribute("innerText").trim()
         );
 
         Assert.assertEquals(actualResults, expectedResults);
