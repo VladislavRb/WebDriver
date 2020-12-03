@@ -9,6 +9,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -37,11 +39,13 @@ public class addItemsToBucketTest {
 
     @Test
     public void addSneakersToBucketListTest() {
+        List<String> expectedResults = Arrays.asList("Товар добавлен в корзину", "Кроссовки мужские Nike Md Runner 2", "176,00 руб.");
+
         driver.get("http://www.sportmaster.by/catalogitem/krossovki_mugskie_nike_md_runner_2749794n06010/");
 
         Wait<WebDriver> wait = new FluentWait<>(driver)
                 .withTimeout(Duration.ofSeconds(15))
-                .pollingEvery(Duration.ofSeconds(3))
+                .pollingEvery(Duration.ofSeconds(1))
                 .ignoring(NoSuchElementException.class)
                 .ignoring(StaleElementReferenceException.class)
                 .withMessage("Timeout for waiting was exceeded!");
@@ -62,10 +66,15 @@ public class addItemsToBucketTest {
         WebElement goToBucketLink = getWebElementByXpath(wait, "//a[text()='В корзину']");
         jsExecutor.executeScript("arguments[0].click()", goToBucketLink);
 
-        WebElement labelInPopupHeader = getWebElementByXpath(wait, "//p[@class='cb-item-popup-head-heading']");
-        String popupBodyText = getWebElementByXpath(wait, "//div[@class='cb-item-popup-body-text']").getAttribute("innerText");
+        WebElement itemPopupWindow = getWebElementByXpath(wait, "//div[@class='cb-item-popup']");
 
-        Assert.assertEquals(extractSneakersInfo(popupBodyText.trim()),"Кроссовки мужские Nike Md Runner 2");
+        List<String> actualResults = Arrays.asList(
+                itemPopupWindow.findElement(By.xpath("//p[@class='cb-item-popup-head-heading']")).getAttribute("innerText").trim(),
+                extractSneakersInfo(itemPopupWindow.findElement(By.xpath("//div[@class='cb-item-popup-body-text']")).getAttribute("innerText").trim()),
+                itemPopupWindow.findElement(By.xpath("//div[@class='cb-item-price-old']")).getText()
+        );
+
+        Assert.assertEquals(actualResults, expectedResults);
     }
 
     @AfterMethod (alwaysRun = true)
