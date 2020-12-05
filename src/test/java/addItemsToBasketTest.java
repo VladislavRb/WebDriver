@@ -4,8 +4,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class addItemsToBasketTest {
+public class AddItemsToBasketTest {
 
     private WebDriver driver;
     private JavascriptExecutor jsExecutor;
@@ -30,8 +30,11 @@ public class addItemsToBasketTest {
         return rawSneakersString.substring(0, vendorCodeStartIndex);
     }
 
-    @BeforeMethod (alwaysRun = true)
+    @BeforeTest (alwaysRun = true)
     public void browserSetup() {
+        String path = System.getProperty("user.dir");
+        System.setProperty("webdriver.chrome.driver", path + "\\src\\drivers\\chromedriver.exe");
+
         driver = new ChromeDriver();
         jsExecutor = (JavascriptExecutor) driver;
     }
@@ -82,7 +85,7 @@ public class addItemsToBasketTest {
         Assert.assertEquals(actualResults, expectedResults);
     }
 
-    @AfterMethod (alwaysRun = true)
+    @AfterTest (alwaysRun = true)
     public void browserQuit() {
         driver.quit();
         driver = null;
